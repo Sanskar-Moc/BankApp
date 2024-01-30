@@ -4,6 +4,11 @@ import java.io.Serializable;
 
 import com.Bank.BankAccount.Accounts.Account;
 
+enum Sex{
+	MALE,
+	FEMALE
+}
+
 public class Customer implements Serializable {
 	private static int refId=100;
 	public int custId;
@@ -15,9 +20,20 @@ public class Customer implements Serializable {
 	public Account bankAccount;
 	public boolean accountAdded=false;
 	public String DOB;
+	public String emailId;
+	public Sex sex;
 	
 	
-	public Customer(int custId,String custName,int custAge,long custMobile, String custPassport,String DOB) {
+	public Customer(String sex,String email,int custId,String custName,int custAge,long custMobile, String custPassport,String DOB) {
+		
+		if(sex.equals("Male")) {
+			this.sex=Sex.MALE;			
+		}
+		else {
+			this.sex=Sex.FEMALE;
+		}
+//		this.sex=sex;
+		this.emailId=email;
 		this.custId=custId;
 		this.custName=custName;
 		this.custAge=custAge;

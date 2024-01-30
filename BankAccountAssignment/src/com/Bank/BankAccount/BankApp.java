@@ -1,22 +1,16 @@
 package com.Bank.BankAccount;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.time.LocalDate;
 import java.time.Year;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
-import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import javax.swing.JOptionPane;
 
 import com.Bank.BankAccount.Accounts.Account;
 import com.Bank.BankAccount.Accounts.CustomerNotFoundException;
@@ -24,10 +18,10 @@ import com.Bank.BankAccount.Accounts.FixedDepositAccount;
 import com.Bank.BankAccount.Accounts.SavingsAccount;
 
 public class BankApp {
-	HashMap<Integer,Customer> customerData;
-	HashSet<String> passportData;
-	HashMap<String,List<Long>>nameToId;
-	List<Customer>customers;
+	public HashMap<Integer,Customer> customerData;
+	public HashSet<String> passportData;
+	public HashMap<String,List<Long>>nameToId;
+	public List<Customer>customers;
 	Scanner sc;
 	
 //	int id;
@@ -39,7 +33,7 @@ public class BankApp {
 		customers=new ArrayList<>();
 		sc=new Scanner(System.in);
 		//deserialization of data retreival of last persisted data
-		deserializeData();
+		FileStorageDao.deserializeData(this);
 		long temp=nameToId.get("#").get(0);
 		int k=(int)temp;
 		Customer.setRefId(k);
@@ -63,21 +57,25 @@ public class BankApp {
 			choice(input);
 		}
 	}
-	public void assign(int id) throws InsufficientBalanceException { // assigns bank account to a Customer instance
+	public void assign(int id,String choice) throws InsufficientBalanceException { // assigns bank account to a Customer instance
 		
 		String currDate=LocalDate.now().toString();
-		System.out.println("Enter SA for Savings Account / FD for Fixed Deposit Account: ");
-		sc.nextLine();
-		String choice=validType();
+//		System.out.println("Enter SA for Savings Account / FD for Fixed Deposit Account: ");
+//		sc.nextLine();
+//		String choice=validType();
 		Account newAccount;
 	
 		// choose savings or fixed deposit
 		if(choice.equals("SA")) {
-			System.out.println("Enter Opening Balance: ");
+//			System.out.println("Enter Opening Balance: ");
+			
 			double bal=enterBalance();
-			System.out.println("Enter 0 if it is a Salary Account"); // check if salary account
-			int isSal=sc.nextInt();
-			boolean sal=isSal==0;
+//			double bal=Double.parseDouble(userInput);
+//			System.out.println("Enter 0 if it is a Salary Account"); // check if salary account
+			String isSal = JOptionPane.showInputDialog(null, "Is it a Salary Account Yes/No");
+//			int isSal=sc.nextInt();
+//			boolean sal=isSal==0;
+			boolean sal=isSal.equals("Yes");
 			//			System.out.println("Enter minimum balance: ");
 			double minBal=sal?0:100;
 			if(bal<minBal) throw new InsufficientBalanceException("“Insufficient balance for Savings Account, Minimum balance should be\r\n"
@@ -85,9 +83,9 @@ public class BankApp {
 			newAccount=new SavingsAccount(Account.getRefAccountNumber(),bal,currDate,sal,minBal);
 		}
 		else {
-			System.out.println("Enter deposit amount: ");
+//			System.out.println("Enter deposit amount: ");
 			double deposit=enterBalance();
-			System.out.println("Enter tenure: ");
+//			System.out.println("Enter tenure: ");
 			int ten=enterTenure();
 			newAccount=new FixedDepositAccount(Account.getRefAccountNumber(),0,currDate,deposit,ten);
 		}
@@ -101,7 +99,7 @@ public class BankApp {
 		List<Long>t=new ArrayList<>();
 		t.add( Account.getRefAccountNumber());
 		nameToId.put("*",t );
-		
+		serialize();
 		System.out.println("Account Added Successfully.");
 	
 	}
@@ -111,9 +109,8 @@ public class BankApp {
 			try {
 				if(checkCustomer(id)) {
 					try {
-						assign(id);
+						assign(id,"");
 					} catch (InsufficientBalanceException e) {
-						// TODO Auto-generated catch block
 						System.out.println("Insufficient Balance");
 	//					e.printStackTrace();
 					}
@@ -134,11 +131,11 @@ public class BankApp {
 	public void choice(int choice) { // main switch choice method
 			switch(choice) {
 			case 0:
-				withdrawOrDeposit();
+				withdrawOrDeposit(0);
 				start();
 				break;
 			case 1:
-				createNewCustomer();
+//				createNewCustomer();
 				start();
 				break;
 			case 2:
@@ -146,11 +143,11 @@ public class BankApp {
 				start();
 				break;
 			case 3:
-				displayBalAndInterest();
+//				displayBalAndInterest();
 				start();
 				break;
 			case 4:
-				displaySortedCustomer();
+//				displaySortedCustomer();
 				start();
 				break;
 			case 5:
@@ -164,9 +161,8 @@ public class BankApp {
 				break;
 			case 7:
 				try {
-					searchCustomerByName();
+					searchCustomerByName("");
 				} catch (CustomerNotFoundException e) {
-					// TODO Auto-generated catch block
 					System.out.println("Customer does not exist");
 	//				e.printStackTrace();
 				}
@@ -181,24 +177,24 @@ public class BankApp {
 				break;
 			}
 		}
-	public void createNewCustomer() { // creates new customer and inputs details
-		System.out.println("==========================================");
-		System.out.println("Enter Name:");
-		sc.nextLine();
-		String name=sc.nextLine();
+	public void createNewCustomer(String sex,String name,long mobile,String passport,LocalDate DOB,String email) { // creates new customer and inputs details
+//		System.out.println("==========================================");
+//		System.out.println("Enter Name:");
+//		sc.nextLine();
+//		String name=sc.nextLine();
 		//		sc.next();
 		//		System.out.println("Enter Age :");
 		//		int age=sc.nextInt();
-		System.out.println("Enter Mobile Number :");
-		long mobile=enterMobile();
-		System.out.println("Enter Passport Id :");
-		sc.nextLine();
-		String passport=enterPassport();
-		System.out.println("Enter DOB in(YYYY-MM-DD) format :");
+//		System.out.println("Enter Mobile Number :");
+//		long mobile=enterMobile();
+//		System.out.println("Enter Passport Id :");
+//		sc.nextLine();
+//		String passport=enterPassport();
+//		System.out.println("Enter DOB in(YYYY-MM-DD) format :");
 		//		sc.nextLine();
 		int age[]=new int[1];
-		String DOB=enterDOB(age);
-		Customer newCustomer=new Customer(Customer.getrefId(),name,age[0],mobile,passport,DOB);
+		isValidDate(DOB,age);
+		Customer newCustomer=new Customer(sex,email,Customer.getrefId(),name,age[0],mobile,passport,DOB.toString());
 		customers.add(newCustomer);
 		customerData.put(Customer.getrefId(),newCustomer);
 		if(!nameToId.containsKey(name)) {
@@ -209,8 +205,11 @@ public class BankApp {
 		else {
 			nameToId.get(name).add((long)Customer.getrefId());
 		}
-	
-	
+		
+		Thread t1=new Thread(()->{
+			EmailSender.send(email, "Hello "+name+" your account is successfully created.");			
+		});
+		t1.start();
 		System.out.println("New Customer added successfully.");
 		System.out.println("Customer ID: "+Customer.getrefId()+"\n"+newCustomer);
 	
@@ -228,93 +227,80 @@ public class BankApp {
 			throw cnfe;
 		}
 	}
-	@SuppressWarnings("unchecked") // deserializer
-	public void deserializeData() {
-		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream("C:\\C376\\data.dat")))) {
-			// Read the serialized objects
-			Object obj1 = ois.readObject();
-			Object obj2 = ois.readObject();
-			Object obj3 = ois.readObject();
-			Object obj4 = ois.readObject();
 	
-			// Check if the deserialized objects are of the expected types
-			if (obj1 instanceof HashMap && obj2 instanceof HashSet && obj3 instanceof HashMap && obj4 instanceof ArrayList) {
-				// Cast the objects back to their respective types
-				this.customerData = (HashMap<Integer, Customer>) obj1;
-	
-				this.passportData = (HashSet<String>) obj2;
-	
-				this.nameToId = (HashMap<String, List<Long>>) obj3;
-	
-				this.customers=(ArrayList<Customer>)obj4;
-	
-				// Display the deserialized objects
-				//                System.out.println("Deserialized Customer Data: " + customerData);
-				//                System.out.println("Deserialized Passport Data: " + passportData);
-				//                System.out.println("Deserialized Name to ID Mapping: " + nameToId);
-			}
-		} catch (IOException | ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-	public void displayBalAndInterest() { //displays bal and interest of a customer id
-		System.out.println("Enter Customer id: ");
-		int id=sc.nextInt();
-		try {
-			if(checkCustomer(id)) {
+	public void displayBalAndInterest(int id) { //displays bal and interest of a customer id
+//		System.out.println("Enter Customer id: ");
+//		int id=sc.nextInt();
+//		try {
+//			if(checkCustomer(id)) {
 				Customer temp=customerData.get(id);
 				if(temp.accountAdded) {
-					System.out.println("Balance: "+temp.getBankAccount().balance);
-					System.out.println("Interest: "+temp.getBankAccount().calculateInterest());
+					String message="Balance: "+temp.getBankAccount().balance
+							+"\n"+"Interest: "+temp.getBankAccount().calculateInterest();
+//					System.out.println("Balance: "+temp.getBankAccount().balance);
+//					System.out.println("Interest: "+temp.getBankAccount().calculateInterest());
+					JOptionPane.showMessageDialog(
+			                null,
+			                message,
+			                "Success",
+			                JOptionPane.INFORMATION_MESSAGE
+			        );
+					serialize();
 				}
 				else {
-					System.out.println("No Account assigned for the provided CustomerID");
+					JOptionPane.showMessageDialog(null, "No Account assigned for the provided Customer ID", "Error", JOptionPane.ERROR_MESSAGE);
+//					System.out.println("No Account assigned for the provided CustomerID");
 				}
-			}	
-		}
-		catch(CustomerNotFoundException e) {
-			System.out.println(e);
-		}
+//			}	
+//		}
+//		catch(CustomerNotFoundException e) {
+//			System.out.println(e);
+//		}
 	}
-	public void displaySortedCustomer() { // sorts according to choices
-		System.out.println("Enter-> \n1:Sort by Customer Name \n2:Sort by Customer ID \n3:Sort by Balance");
-		int input=sc.nextInt();
+	public List<Customer> displaySortedCustomer(int input) { // sorts according to choices
+//		System.out.println("Enter-> \n1:Sort by Customer Name \n2:Sort by Customer ID \n3:Sort by Balance");
+//		int input=sc.nextInt();
 		switch(input) {
 		case 1:
 	
 			Collections.sort(customers, new CustomerNameComparator());
-			System.out.println(customers);
+//			System.out.println(customers);
 			break;
 		case 2:
 			Collections.sort(customers,new CustomerIdComparator());
-			System.out.println(customers);
+//			System.out.println(customers);
 			break;
 		case 3:
 			Collections.sort(customers,new CustomerBalanceComparator());
-			System.out.println(customers);
+//			System.out.println(customers);
 			break;
 		default:
 			System.out.println("Invalid Choice, Try again");
-			displaySortedCustomer();
+//			displaySortedCustomer();
 			break;
 		}
+		return customers;
 	}
 	public double enterBalance() { // balance input
-		double bal=sc.nextDouble();
+		String userInput = JOptionPane.showInputDialog(null, "Enter Balance:");
+		double bal=Double.parseDouble(userInput);
+		
 		if(bal<0.0) {
-			System.out.println("Cant have negative fund input, try again: ");
+//			System.out.println("Cant have negative fund input, try again: ");
+			JOptionPane.showMessageDialog(null, "Cant have negative fund input, try again", "Error", JOptionPane.ERROR_MESSAGE);
 			bal=enterBalance();
 		}
 		return bal;
 	}
 	public String enterDOB(int a[]) { // enter date of birth
-		String DOB=sc.nextLine();
+//		String DOB=sc.nextLine();
+		LocalDate DOB=LocalDate.now();
 		if(!isValidDate(DOB,a)) {
 			System.out.println("Please enter valid date, try again :");
-			DOB=enterDOB(a);
+//			DOB=enterDOB(a);
 		}
 	
-		return DOB;
+		return DOB.toString();
 	}
 	public long enterMobile() { // take input of mobile number
 		long number=sc.nextLong();
@@ -334,18 +320,24 @@ public class BankApp {
 		return passport;
 	}
 	public int enterTenure() { // tenure input
-		int ten=sc.nextInt();
-		if(ten<1 || ten>7) {
-			System.out.println("Can only have tenure for [1,7]yrs, try again: ");
-			ten=enterTenure();
+	//		int ten=sc.nextInt();
+			String userInput = JOptionPane.showInputDialog(null, "Enter Tenure [1,7]yrs:");
+			int ten=Integer.parseInt(userInput);
+			if(ten<1 || ten>7) {
+	//			System.out.println("Can only have tenure for [1,7]yrs, try again: ");
+				JOptionPane.showMessageDialog(null, "Can only have tenure for [1,7]yrs, try again", "Error", JOptionPane.ERROR_MESSAGE);
+				ten=enterTenure();
+			}
+			return ten;
 		}
-		return ten;
+	public boolean checkPassport(String p) {
+		return passportData.add(p);
 	}
-	public boolean isValidDate(String DOB,int a[]) { // check if entered date is valid or not
-		String parts[]=DOB.split("-");
-		int year=Integer.parseInt(parts[0]);
-		int month=Integer.parseInt(parts[1]);
-		int day=Integer.parseInt(parts[2]);
+	public boolean isValidDate(LocalDate DOB,int a[]) { // check if entered date is valid or not
+//		String parts[]=DOB.split("-");
+		int year=DOB.getYear();
+		int month=DOB.getMonthValue();
+		int day=DOB.getDayOfMonth();
 		int currYear= Year.now().getValue();
 		a[0]=currYear-year;
 		if(a[0]<10) {
@@ -390,6 +382,10 @@ public class BankApp {
 
 	}
 	// Serialize the objects with buffers
+	public void serialize() {
+		FileStorageDao fsdao=new FileStorageDao();
+		fsdao.serialize(customerData, passportData, nameToId, customers);
+	}
 	public void persistData() {
 		System.out.println("Enter choice: \n1:Store in FileSystem \n2:Store in DBMS");
 		int n=sc.nextInt();
@@ -409,60 +405,115 @@ public class BankApp {
 		}
 	
 	}
-	public void searchCustomerByName() throws CustomerNotFoundException{ //search customers by name
-		System.out.println("Enter name: ");
-		sc.nextLine();
-		String name=sc.nextLine();
+	public List<Customer> searchCustomerByName(String name) throws CustomerNotFoundException{ //search customers by name
+//		System.out.println("Enter name: ");
+//		sc.nextLine();
+//		String name=sc.nextLine();
+		List<Customer>byNames;
 		if(nameToId.containsKey(name)) {
 			List<Long>ids=nameToId.get(name);
-			for(long id:ids) {
-				int temp=(int)id;
-				System.out.println("=======================================================");
-				System.out.println(customerData.get(temp));
-			}
+			
+			byNames=ids.stream()
+					.mapToInt((n)->{
+						String s=n.toString();
+						int t=Integer.parseInt(s);
+						return t;
+					})
+					.mapToObj(customerData::get)
+					.collect(Collectors.toList());
+//			System.out.println(byNames);
+			return byNames;
+			
+//			for(long id:ids) {
+//				int temp=(int)id;
+//				System.out.println("=======================================================");
+//				System.out.println(customerData.get(temp));
+//			}
 		}
 		else {			
 			throw new CustomerNotFoundException("No Customer with such name exist.");
 		}
+//		return byNames;
 	}
 	public void showAllCustomers() { // display all customers
 		System.out.println("All Customers: \n");
 		System.out.println(customerData);
 		start();
 	}
-	public void transacOptions(SavingsAccount a) {//choose transaction options
-			System.out.println("Enter option->"
-					+"\n1. Withdraw"
-					+"\n2. Deposit"
-					+"\n3. Check Balance"
-					);
-			byte opts=sc.nextByte();
+	public void transacOptions(SavingsAccount a,int id) {//choose transaction options
+//			System.out.println("Enter option->"
+//					+"\n1. Withdraw"
+//					+"\n2. Deposit"
+//					+"\n3. Check Balance"
+//					);
+			String[] choices = {"Withdraw", "Deposit","Check Balance"};
+	
+	        // Show an input dialog with a choice box
+	        String selectedChoiceObject = (String)JOptionPane.showInputDialog(
+	                null,
+	                "Choose an option:",
+	                "Choice Input Dialog",
+	                JOptionPane.QUESTION_MESSAGE,
+	                null,
+	                choices,
+	                choices[0] // Default selection
+	        );
+//			byte opts=sc.nextByte();
+	        byte opts=0;
+	        for(String s:choices) {
+	        	if(s.equals(selectedChoiceObject))
+	        		break;
+	        	opts++;
+	        }
+	        System.out.println(opts);
 			double amt;
+			Customer c=customerData.get(id);
 			switch(opts) {
-				case 1:
-					System.out.println("Enter Amount: ");
-					amt=sc.nextDouble();
+				case 0:
+//					System.out.println("Enter Amount: ");
+//					amt=sc.nextDouble();
+					String userInput = JOptionPane.showInputDialog(null, "Enter Amount to withdraw: ");
+					amt=Double.parseDouble(userInput);
 					try {
 						a.withdraw(amt);
+						JOptionPane.showMessageDialog(null, "Withdrawn Successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+						Thread t1=new Thread(()->{
+							String message="Hello "+c.getCustName()+" an amount of Rs."+amt+" is withdrawn from your Account"
+									+" with CustomerID:"+id;
+							EmailSender.send(c.emailId,message );
+						});
+						t1.start();
 					} catch (InsufficientBalanceException e) {
-						// TODO Auto-generated catch block
-						System.out.println("Insufficient Funds");
+//						System.out.println("Insufficient Funds");
 	//					e.printStackTrace();
+						JOptionPane.showMessageDialog(null, "Insufficient Funds", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 					break;
-				case 2:
-					System.out.println("Enter Amount: ");
-					amt=sc.nextDouble();
+				case 1:
+//					System.out.println("Enter Amount: ");
+//					amt=sc.nextDouble();
+					userInput = JOptionPane.showInputDialog(null, "Enter Amount to withdraw: ");
+					amt=Double.parseDouble(userInput);
 					a.deposit(amt);
+					JOptionPane.showMessageDialog(null, "Deposited Successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+					Thread t1=new Thread(()->{
+						String message="Hello "+c.getCustName()+" an amount of Rs."+amt+" is deposited to your Account"
+								+" with CustomerID:"+id;
+						EmailSender.send(c.emailId,message);
+					});
+					t1.start();
 					break;
-				case 3:
-					a.checkBalance();
+				case 2:
+//					a.checkBalance();
+					
+					JOptionPane.showMessageDialog(null, "Your Balance is "+a.balance, "Info", JOptionPane.INFORMATION_MESSAGE);
 					break;
 				default:
 					System.out.println("Invalid choice, try again");
-					transacOptions(a);
+//					transacOptions(a);
 					break;
 			}
+			serialize();
 		}
 	public String validType() { // checks if account is FD Account or SA account 
 		String choice=sc.nextLine();
@@ -474,22 +525,22 @@ public class BankApp {
 			return validType();
 		}
 	}
-	public void withdrawOrDeposit() { //check metas about customer account
-		System.out.println("Enter Customer ID");
-		int id=sc.nextInt();
+	public void withdrawOrDeposit(int id) { //check metas about customer account
+//		System.out.println("Enter Customer ID");
+//		int id=sc.nextInt();
 		try {
 			if(checkCustomer(id)) {
 				Customer temp=customerData.get(id);
 				Account a=temp.getBankAccount();
 				if(a instanceof SavingsAccount) {
-					transacOptions((SavingsAccount) a);
+					transacOptions((SavingsAccount) a,id);
 				}
 				else {
-					System.out.println("Can't withdraw/deposit from FD Bank Account");
+//					System.out.println("Can't withdraw/deposit from FD Bank Account");
+					JOptionPane.showMessageDialog(null, "Can't withdraw/deposit from FD Bank Account", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		} catch (CustomerNotFoundException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Customer does not exist");
 //			e.printStackTrace();
 		}

@@ -1,13 +1,17 @@
 package com.Bank;
 
-import com.Bank.BankAccount.BankApp;
+//import com.Bank.BankAccount.BankApp;
+import com.Bank.BankAccount.EmailSender;
+import com.Bank.frontend.MainMenu;
 
 public class TestBank {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		BankApp ba=new BankApp();
-		ba.start();
+//		BankApp ba=new BankApp();
+//		ba.start();
+//		EmailSender es=new EmailSender();
+//		es.send();
+		new MainMenu();
 
 	}
 
