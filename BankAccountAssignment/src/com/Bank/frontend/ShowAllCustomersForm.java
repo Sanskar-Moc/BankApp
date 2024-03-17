@@ -2,17 +2,22 @@ package com.Bank.frontend;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
 
 import com.Bank.BankAccount.BankApp;
-import com.Bank.BankAccount.Customer;
 import com.Bank.BankAccount.Accounts.Account;
-import com.Bank.BankAccount.Accounts.CustomerNotFoundException;
+import com.Bank.BankAccount.customers.Customer;
+import com.Bank.database.JDBCUtils;
+import com.Bank.exceptions.CustomerNotFoundException;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 
 public class ShowAllCustomersForm extends JFrame {
@@ -33,28 +38,29 @@ public class ShowAllCustomersForm extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Create the table model
-        CustomerTableModel tableModel = new CustomerTableModel(customerData);
-        getContentPane().setLayout(null);
-
-        // Create the JTable
-        
-        
-        
-        
-        
-        
-        
-        JTable table = new JTable(tableModel);
+//        CustomerTableModel tableModel = new CustomerTableModel(customerData);
+//        getContentPane().setLayout(null);
+//
+//        // Create the JTable
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        JTable table = new JTable(tableModel);
+        sorts(2);
 
         // Create a scroll pane and add the table to it
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(800, 450));
-        scrollPane.setSize(new Dimension(800, 450));
-        scrollPane.setBounds(0, 0, 1000, 306);
-        scrollPane.setFont(new Font("Tahoma", Font.PLAIN, 15));
-
-        // Add the scroll pane to the frame
-        getContentPane().add(scrollPane);
+//        JScrollPane scrollPane = new JScrollPane(table);
+//        scrollPane.setPreferredSize(new Dimension(800, 450));
+//        scrollPane.setSize(new Dimension(800, 450));
+//        scrollPane.setBounds(0, 0, 1000, 306);
+//        scrollPane.setFont(new Font("Tahoma", Font.PLAIN, 15));
+//
+//        // Add the scroll pane to the frame
+//        getContentPane().add(scrollPane);
         
         JButton backButton = new JButton("Back");
         backButton.addActionListener(new ActionListener() {
@@ -101,12 +107,8 @@ public class ShowAllCustomersForm extends JFrame {
         searchByNameButton.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		String userInput = JOptionPane.showInputDialog(null, "Enter Customer Name: ");
-        		try {
-					sorts(ba.searchCustomerByName(userInput));
-				} catch (CustomerNotFoundException e1) {
-//					e1.printStackTrace();
-					JOptionPane.showMessageDialog(null, "Customer with the given Name does not exist, try again", "Error", JOptionPane.ERROR_MESSAGE);
-				}
+        		//					sorts(ba.searchCustomerByName(userInput),userInput);
+				sorts(userInput);
         	}
         });
         searchByNameButton.setFont(new Font("Tahoma", Font.PLAIN, 15));
@@ -122,9 +124,12 @@ public class ShowAllCustomersForm extends JFrame {
     public void sorts(int c) {
     	CustomerTableModel tableModel = new CustomerTableModel(ba.displaySortedCustomer(c));
         getContentPane().setLayout(null);
-
+        
+        DefaultTableModel model = new DefaultTableModel();
+        
+        
         // Create the JTable
-        JTable table = new JTable(tableModel);
+        JTable table = new JTable(model);
 
         // Create a scroll pane and add the table to it
         JScrollPane scrollPane = new JScrollPane(table);
@@ -136,14 +141,51 @@ public class ShowAllCustomersForm extends JFrame {
         // Add the scroll pane to the frame
         getContentPane().add(scrollPane);
         
+        try {
+			ResultSet resultSet=null;
+			switch(c) {
+			case 1:
+				resultSet=JDBCUtils.selectData("name");
+				break;
+			case 2:
+				resultSet=JDBCUtils.selectData("custId");
+				break;
+			case 3:
+				resultSet=JDBCUtils.selectData("balance");
+			}
+			
+			ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            // Add column names to the table model
+            for (int i = 1; i <= columnCount; i++) {
+                model.addColumn(metaData.getColumnName(i));
+            }
+
+            // Add rows to the table model
+            while (resultSet.next()) {
+                Object[] rowData = new Object[columnCount];
+                for (int i = 1; i <= columnCount; i++) {
+                    rowData[i - 1] = resultSet.getObject(i);
+                }
+                model.addRow(rowData);
+            }
+        } catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        	
        
     }
-    public void sorts(List<Customer>custs) {
-    	CustomerTableModel tableModel = new CustomerTableModel(custs);
+//    public void sorts(List<Customer>custs,String user) {
+    	public void sorts(String user) {
+//    	CustomerTableModel tableModel = new CustomerTableModel(custs);
     	getContentPane().setLayout(null);
-    	
+        
+    	DefaultTableModel model = new DefaultTableModel();
+
     	// Create the JTable
-    	JTable table = new JTable(tableModel);
+    	JTable table = new JTable(model);
     	
     	// Create a scroll pane and add the table to it
     	JScrollPane scrollPane = new JScrollPane(table);
@@ -155,6 +197,31 @@ public class ShowAllCustomersForm extends JFrame {
     	// Add the scroll pane to the frame
     	getContentPane().add(scrollPane);
     	
+    	
+    	try {
+			ResultSet resultSet=JDBCUtils.selectDataSearch(user);
+			
+			ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            // Add column names to the table model
+            for (int i = 1; i <= columnCount; i++) {
+                model.addColumn(metaData.getColumnName(i));
+            }
+
+            // Add rows to the table model
+            while (resultSet.next()) {
+                Object[] rowData = new Object[columnCount];
+                for (int i = 1; i <= columnCount; i++) {
+                    rowData[i - 1] = resultSet.getObject(i);
+                }
+                model.addRow(rowData);
+            }
+    	
+    	} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	
     }
     // Custom TableModel for Customer data

@@ -4,14 +4,16 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import com.Bank.BankAccount.BankApp;
-import com.Bank.BankAccount.InsufficientBalanceException;
-import com.Bank.BankAccount.Accounts.CustomerNotFoundException;
+import com.Bank.database.JDBCUtils;
+import com.Bank.exceptions.CustomerNotFoundException;
+import com.Bank.exceptions.InsufficientBalanceException;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.JButton;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
 import java.awt.Button;
@@ -62,7 +64,7 @@ public class MainMenu extends JFrame {
 				String userInput = JOptionPane.showInputDialog(null, "Enter Customer ID:");
 				int id=Integer.parseInt(userInput);
 				try {
-					if(ba.checkCustomer(id)) {
+					if(JDBCUtils.checkCustomer(id)) {
 						String[] choices = {"SA", "FD"};
 
 				        // Show an input dialog with a choice box
@@ -83,7 +85,10 @@ public class MainMenu extends JFrame {
 							JOptionPane.showMessageDialog(null, "Account Balance cant be less than 100", "Error", JOptionPane.ERROR_MESSAGE);
 						}
 					}
-				} catch (CustomerNotFoundException e1) {
+					else {
+						JOptionPane.showMessageDialog(null, "Customer ID does not Exist", "Error", JOptionPane.ERROR_MESSAGE);						
+					}
+				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
 					JOptionPane.showMessageDialog(null, "Customer ID does not Exist", "Error", JOptionPane.ERROR_MESSAGE);
 //					e1.printStackTrace();
@@ -118,13 +123,12 @@ public class MainMenu extends JFrame {
 				String userInput = JOptionPane.showInputDialog(null, "Enter Customer ID:");
 				int id=Integer.parseInt(userInput);
 				try {
-					if(ba.checkCustomer(id)) {
+					if(JDBCUtils.checkCustomer(id)) {
 						ba.displayBalAndInterest(id);
 					}
-				} catch (CustomerNotFoundException e1) {
+				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
-					JOptionPane.showMessageDialog(null, "Customer ID does not Exist", "Error", JOptionPane.ERROR_MESSAGE);
-//					e1.printStackTrace();
+					e1.printStackTrace();
 				}
 			}
 		});
@@ -140,10 +144,10 @@ public class MainMenu extends JFrame {
 				String userInput = JOptionPane.showInputDialog(null, "Enter Customer ID:");
 				int id=Integer.parseInt(userInput);
 				try {
-					if(ba.checkCustomer(id)) {
+					if(JDBCUtils.checkCustomer(id)) {
 						ba.withdrawOrDeposit(id);
 					}
-				} catch (CustomerNotFoundException e1) {
+				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
 					JOptionPane.showMessageDialog(null, "Customer ID does not Exist", "Error", JOptionPane.ERROR_MESSAGE);
 //					e1.printStackTrace();

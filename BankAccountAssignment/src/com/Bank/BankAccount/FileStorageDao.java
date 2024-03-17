@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import com.Bank.BankAccount.customers.Customer;
+
 public class FileStorageDao {
 	public void serialize(HashMap<Integer,Customer> customerData,HashSet<String> passportData, HashMap<String,List<Long>> nameToId,List<Customer> customers) {
 		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("C:\\C376\\data.dat")))) {

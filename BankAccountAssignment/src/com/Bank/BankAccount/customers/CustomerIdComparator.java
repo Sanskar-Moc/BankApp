@@ -1,4 +1,4 @@
-package com.Bank.BankAccount;
+package com.Bank.BankAccount.customers;
 
 import java.util.Comparator;
 

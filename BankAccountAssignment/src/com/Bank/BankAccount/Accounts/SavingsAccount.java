@@ -1,6 +1,6 @@
 package com.Bank.BankAccount.Accounts;
 
-import com.Bank.BankAccount.InsufficientBalanceException;
+import com.Bank.exceptions.InsufficientBalanceException;
 
 public class SavingsAccount extends Account {
 	public boolean isSalaryAccount;

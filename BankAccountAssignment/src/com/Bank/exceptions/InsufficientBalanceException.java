@@ -1,4 +1,4 @@
-package com.Bank.BankAccount;
+package com.Bank.exceptions;
 
 public class InsufficientBalanceException extends Exception {
 
